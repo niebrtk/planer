@@ -400,6 +400,7 @@
   function todayRow(p, actions) {
     var m = META[p.sid];
     var row = el('div', 'today-row');
+    row.style.setProperty('--subject-color', subjColor(m));   // przyciski w kolorze przedmiotu wiersza
     var jump = btn('today-jump', null, function () { jumpTo(p); });
     var tag = el('span', 'today-tag', m.short);
     tag.style.setProperty('--c', subjColor(m));
