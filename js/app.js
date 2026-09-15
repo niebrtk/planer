@@ -51,15 +51,20 @@
     openLek: {}                    // tytuł lektury -> czy pytania rozwinięte
   };
 
+  var POLA_ZAPISU = ['active', 'tab', 'marks', 'arkusze', 'lektury', 'pytania',
+    'notatki', 'ustnaNr', 'rep', 'log', 'theme'];
+
+  function zapisywanyStan() {
+    var out = {};
+    POLA_ZAPISU.forEach(function (k) { out[k] = state[k]; });
+    return out;
+  }
+
   function save() {
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({
-        active: state.active, tab: state.tab, marks: state.marks,
-        arkusze: state.arkusze, lektury: state.lektury, pytania: state.pytania,
-        notatki: state.notatki, ustnaNr: state.ustnaNr,
-        rep: state.rep, log: state.log, theme: state.theme
-      }));
+      localStorage.setItem(STORE_KEY, JSON.stringify(zapisywanyStan()));
     } catch (e) { /* tryb prywatny / brak miejsca — planer działa dalej, bez zapisu */ }
+    if (window.PLANER_SYNC && window.PLANER_SYNC.zapisz) window.PLANER_SYNC.zapisz();
   }
 
   // — daty ————————————————————————————————————————————————————————
@@ -960,6 +965,20 @@
   }
 
   $('theme-btn').addEventListener('click', cycleTheme);
+
+  // — most dla warstwy logowania (js/sync.js) ————————————————————————
+  window.PLANER_APP = {
+    stan: zapisywanyStan,
+    wczytaj: function (nowy) {
+      POLA_ZAPISU.forEach(function (k) { if (nowy[k] !== undefined) state[k] = nowy[k]; });
+      if (!META[state.active]) state.active = 'bio';
+      backfillReviews();
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(zapisywanyStan())); } catch (e) {}
+      applyTheme();
+      render();
+    },
+    odswiez: render
+  };
 
   // — start ————————————————————————————————————————————————————————
   backfillReviews();

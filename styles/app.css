@@ -495,3 +495,12 @@ a:hover { color: var(--color-neutral-700); }
   font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-neutral-600);
 }
 .hm-probka { width: 11px; height: 11px; display: inline-block; }
+
+/* — konto i synchronizacja — */
+.konto { display: inline-flex; align-items: baseline; gap: 12px; }
+.konto-menu { display: inline-flex; gap: 10px; }
+.konto-info {
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-neutral-600); max-width: 210px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}

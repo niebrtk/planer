@@ -20,6 +20,8 @@ Ewentualnie lokalny serwer, np. `npx http-server .`
 | `js/data-listy.js` | przedmioty, listy tematyczne polskiego i matematyki, 34 lektury obowiązkowe |
 | `js/data-pytania.js` | 75 pytań jawnych na maturę ustną, przypisanych do tytułów lektur |
 | `js/app.js` | stan, odliczanie, renderowanie, zapis postępu |
+| `js/sync-config.js` | adres i klucz projektu Supabase (puste = planer działa lokalnie) |
+| `js/sync.js` | logowanie GitHub/Google i synchronizacja postępu |
 
 ## Jak używać
 
@@ -79,6 +81,56 @@ Wszystko siedzi w `localStorage` przeglądarki pod kluczem `matura-planner-v1`
 dzienny licznik opanowanych wymagań, motyw i ostatnio otwarta zakładka). Dane nie wychodzą nigdzie poza
 Twój komputer — ale też nie przenoszą się między przeglądarkami ani urządzeniami,
 a wyczyszczenie danych witryny je kasuje.
+
+## Logowanie i synchronizacja
+
+Dopóki `js/sync-config.js` jest pusty, planer działa wyłącznie lokalnie i w nagłówku
+nie ma nic o koncie. Po skonfigurowaniu pojawia się przycisk **Zaloguj** (GitHub / Google),
+a postęp wędruje między telefonem a komputerem.
+
+### Co trzeba zrobić raz
+
+1. **Supabase** — załóż darmowy projekt na [supabase.com](https://supabase.com).
+2. **Tabela na postęp** — w SQL Editor uruchom:
+
+   ```sql
+   create table if not exists public.planer_postep (
+     user_id uuid primary key references auth.users on delete cascade,
+     dane jsonb not null,
+     zmieniono timestamptz not null default now()
+   );
+   alter table public.planer_postep enable row level security;
+   create policy "wlasny odczyt"      on public.planer_postep for select using (auth.uid() = user_id);
+   create policy "wlasny zapis"       on public.planer_postep for insert with check (auth.uid() = user_id);
+   create policy "wlasna aktualizacja" on public.planer_postep for update
+     using (auth.uid() = user_id) with check (auth.uid() = user_id);
+   ```
+
+   RLS sprawia, że każdy widzi wyłącznie swój wiersz.
+
+3. **GitHub jako sposób logowania** — na GitHubie: Settings → Developer settings →
+   OAuth Apps → New OAuth App. Homepage: `https://niebrtk.github.io/planer/`,
+   Authorization callback URL: `https://<twój-projekt>.supabase.co/auth/v1/callback`.
+   Client ID i wygenerowany secret wklej w Supabase → Authentication → Providers → GitHub.
+4. **Google** — Google Cloud Console → APIs & Services → Credentials → Create OAuth client ID
+   (typ: Web application), Authorized redirect URI ten sam `…/auth/v1/callback`.
+   Client ID i secret wklej w Supabase → Authentication → Providers → Google.
+5. **Adresy powrotu** — Supabase → Authentication → URL Configuration:
+   Site URL `https://niebrtk.github.io/planer/`, a w Redirect URLs dorzuć ten sam adres
+   (i `http://localhost:8080/` jeśli testujesz lokalnie).
+6. **Klucze do planera** — Supabase → Project Settings → API: skopiuj *Project URL*
+   i klucz *anon public* do `js/sync-config.js`, zacommituj i wypchnij.
+
+Klucz `anon` jest publiczny z założenia i może leżeć w repozytorium — dostępu pilnuje RLS.
+Klucza `service_role` **nigdy** tu nie wklejaj.
+
+### Jak działa scalanie
+
+Przy logowaniu planer nie nadpisuje niczego w ciemno, tylko scala stan lokalny ze zdalnym:
+przy każdym wymaganiu, lekturze, pytaniu i liczniku arkuszy wygrywa dalej posunięta wartość,
+przy powtórkach dalszy termin, w notatkach dłuższy tekst (pole po polu), a ustawienia
+(motyw, ostatnia zakładka) bierze z nowszej strony. Potem każdy zapis leci do chmury
+z dwusekundowym opóźnieniem, żeby nie strzelać przy każdym kliknięciu.
 
 ## Dane z podstawy programowej
 
