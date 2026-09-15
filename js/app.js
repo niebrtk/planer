@@ -18,7 +18,9 @@
   var DZIALY = window.PLANER_DZIALY;
   var LISTY = window.PLANER_LISTY;
   var LEKTURY = window.PLANER_LEKTURY;
+  var PYTANIA = window.PLANER_PYTANIA;
   var LEK_LABELS = ['Nieprzeczytane', 'W trakcie czytania', 'Przeczytane', 'Omówione'];
+  var PYT_LABELS = ['do opracowania', 'w trakcie', 'opracowane'];
   var THEMES = ['auto', 'jasny', 'ciemny'];
 
   // — stan ————————————————————————————————————————————————————————
@@ -31,17 +33,19 @@
     marks: saved.marks || {},      // 'sid|si|gi|pi' -> 0 do nauki / 1 w trakcie / 2 opanowane
     arkusze: saved.arkusze || {},  // sid -> liczba rozwiązanych arkuszy
     lektury: saved.lektury || {},  // 'grp|tytuł' -> 0..3
+    pytania: saved.pytania || {},  // numer pytania ustnego -> 0 do opracowania / 1 w trakcie / 2 opracowane
     rep: saved.rep || {},          // 'sid|si|gi|pi' -> { l: poziom powtórki, d: termin (ms) }
     log: saved.log || {},          // 'RRRR-MM-DD' -> ile wymagań opanowano tego dnia
     theme: THEMES.indexOf(saved.theme) >= 0 ? saved.theme : 'auto',
-    open: {}                       // 'sid|si' -> czy dział rozwinięty
+    open: {},                      // 'sid|si' -> czy dział rozwinięty
+    openLek: {}                    // tytuł lektury -> czy pytania rozwinięte
   };
 
   function save() {
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({
         active: state.active, tab: state.tab, marks: state.marks,
-        arkusze: state.arkusze, lektury: state.lektury,
+        arkusze: state.arkusze, lektury: state.lektury, pytania: state.pytania,
         rep: state.rep, log: state.log, theme: state.theme
       }));
     } catch (e) { /* tryb prywatny / brak miejsca — planer działa dalej, bez zapisu */ }
@@ -185,6 +189,14 @@
   function cycleLektura(key) {
     state.lektury[key] = ((state.lektury[key] || 0) + 1) % 4;
     save(); render();
+  }
+  function cyclePytanie(nr) {
+    state.pytania[nr] = ((state.pytania[nr] || 0) + 1) % 3;
+    save(); render();
+  }
+  function toggleLektura(title) {
+    state.openLek[title] = !state.openLek[title];
+    render();
   }
   function bumpArk(d) {
     state.arkusze[state.active] = Math.max(0, (state.arkusze[state.active] || 0) + d);
@@ -489,34 +501,80 @@
 
   function renderLektury() {
     var wrap = el('div', 'lektury');
-    var done = 0, total = 0;
+    var done = 0, total = 0, pytDone = 0, pytTotal = 0;
     LEKTURY.forEach(function (g) {
       g.items.forEach(function (title) {
         total++;
         if ((state.lektury[lekKey(g.group, title)] || 0) >= 2) done++;
       });
     });
+    Object.keys(PYTANIA).forEach(function (t) {
+      PYTANIA[t].forEach(function (q) { pytTotal++; if ((state.pytania[q.nr] || 0) === 2) pytDone++; });
+    });
+
     wrap.appendChild(el('div', 'lektury-hint', done + '/' + total +
       ' lektur przeczytanych · kliknij, aby zmienić: nieprzeczytane → w trakcie czytania → przeczytane → omówione'));
+    wrap.appendChild(el('div', 'lektury-hint', pytDone + '/' + pytTotal +
+      ' pytań jawnych na ustną opracowanych · rozwiń lekturę, aby zobaczyć jej pytania'));
 
     LEKTURY.forEach(function (g) {
       var grp = el('div', 'lek-group');
       grp.appendChild(el('div', 'lek-group-label', g.group));
       var list = el('div', 'lek-list');
-      g.items.forEach(function (title) {
-        var key = lekKey(g.group, title);
-        var v = state.lektury[key] || 0;
-        var cls = v >= 2 ? ' is-done' : v === 1 ? ' is-progress' : '';
-        var row = btn('lek-row', null, function () { cycleLektura(key); });
-        row.appendChild(el('span', 'lek-box' + cls, v === 3 ? '★' : v === 2 ? '✓' : v === 1 ? '·' : ''));
-        row.appendChild(el('span', 'lek-name' + (v >= 2 ? ' is-done' : ''), title));
-        row.appendChild(el('span', 'lek-tag' + cls, LEK_LABELS[v]));
-        list.appendChild(row);
-      });
+      g.items.forEach(function (title) { list.appendChild(renderLektura(g.group, title)); });
       grp.appendChild(list);
       wrap.appendChild(grp);
     });
     return wrap;
+  }
+
+  function renderLektura(group, title) {
+    var key = lekKey(group, title);
+    var v = state.lektury[key] || 0;
+    var cls = v >= 2 ? ' is-done' : v === 1 ? ' is-progress' : '';
+    var pyt = PYTANIA[title] || [];
+    var open = !!state.openLek[title];
+
+    var item = el('div', 'lek-item');
+    var row = el('div', 'lek-row');
+    var status = btn('lek-status', null, function () { cycleLektura(key); });
+    status.appendChild(el('span', 'lek-box' + cls, v === 3 ? '★' : v === 2 ? '✓' : v === 1 ? '·' : ''));
+    status.appendChild(el('span', 'lek-name' + (v >= 2 ? ' is-done' : ''), title));
+    status.appendChild(el('span', 'lek-tag' + cls, LEK_LABELS[v]));
+    row.appendChild(status);
+
+    if (pyt.length) {
+      var qDone = pyt.filter(function (q) { return (state.pytania[q.nr] || 0) === 2; }).length;
+      var toggle = btn('lek-toggle' + (qDone === pyt.length ? ' is-complete' : ''), null,
+        function () { toggleLektura(title); });
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.appendChild(el('span', null, qDone + '/' + pyt.length + ' pyt.'));
+      toggle.appendChild(el('span', 'lek-caret', open ? '–' : '+'));
+      row.appendChild(toggle);
+    }
+    item.appendChild(row);
+
+    if (open && pyt.length) {
+      var box = el('div', 'lek-questions');
+      pyt.forEach(function (q) {
+        var pv = state.pytania[q.nr] || 0;
+        var b = btn('pyt-row', null, function () { cyclePytanie(q.nr); });
+        b.setAttribute('aria-pressed', pv === 2 ? 'true' : 'false');
+        b.title = PYT_LABELS[pv];
+        b.appendChild(el('span', 'pyt-box' + (pv === 2 ? ' is-done' : pv === 1 ? ' is-progress' : ''),
+          pv === 2 ? '✓' : pv === 1 ? '·' : ''));
+        var txt = el('div', 'pyt-text');
+        var head = el('div', 'pyt-temat' + (pv === 2 ? ' is-done' : ''));
+        head.appendChild(el('span', 'pyt-nr', q.nr + '.'));
+        head.appendChild(document.createTextNode(' ' + q.temat));
+        txt.appendChild(head);
+        txt.appendChild(el('div', 'pyt-zrodlo', q.zrodlo));
+        b.appendChild(txt);
+        box.appendChild(b);
+      });
+      item.appendChild(box);
+    }
+    return item;
   }
 
   function renderArkusze(meta) {

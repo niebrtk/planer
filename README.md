@@ -18,6 +18,7 @@ Ewentualnie lokalny serwer, np. `npx http-server .`
 | `styles/app.css` | paleta planera (ciepła, papierowa) i style wszystkich elementów |
 | `js/data-dzialy.js` | działy i wymagania: biologia PR (18 działów, 214 wymagań), chemia PR (22 / 173) |
 | `js/data-listy.js` | przedmioty, listy tematyczne polskiego i matematyki, 34 lektury obowiązkowe |
+| `js/data-pytania.js` | 75 pytań jawnych na maturę ustną, przypisanych do tytułów lektur |
 | `js/app.js` | stan, odliczanie, renderowanie, zapis postępu |
 
 ## Jak używać
@@ -27,6 +28,9 @@ Ewentualnie lokalny serwer, np. `npx http-server .`
   do nauki → w trakcie → opanowane. „W trakcie" liczy się jako pół punktu w procentach.
 - **Arkusze** — licznik rozwiązanych arkuszy, osobno dla każdego przedmiotu.
 - **Lektury** (tylko polski) — nieprzeczytane → w trakcie czytania → przeczytane → omówione.
+  Przy lekturze, która ma pytania jawne na maturę ustną, po prawej jest licznik `0/3 pyt.`
+  — rozwija listę pytań. Każde pytanie ma własny status: do opracowania → w trakcie → opracowane.
+  Razem 75 pytań przy 28 lekturach (pozostałe 6 pozycji pytań jawnych nie ma).
 
 ### Sekcja „Dziś"
 
@@ -57,8 +61,8 @@ var ARKUSZE_GOAL = 15;          // cel arkuszy na przedmiot
 ## Zapis postępu
 
 Wszystko siedzi w `localStorage` przeglądarki pod kluczem `matura-planner-v1`
-(zaznaczenia, arkusze, lektury, terminy powtórek, dzienny licznik opanowanych wymagań,
-motyw i ostatnio otwarta zakładka). Dane nie wychodzą nigdzie poza
+(zaznaczenia, arkusze, lektury, pytania ustne, terminy powtórek, dzienny licznik opanowanych
+wymagań, motyw i ostatnio otwarta zakładka). Dane nie wychodzą nigdzie poza
 Twój komputer — ale też nie przenoszą się między przeglądarkami ani urządzeniami,
 a wyczyszczenie danych witryny je kasuje.
 

@@ -189,13 +189,54 @@ a:hover { color: var(--color-neutral-700); }
   color: var(--color-neutral-600); padding-bottom: 8px;
 }
 .lek-list { display: flex; flex-direction: column; }
-.lek-row {
-  display: flex; align-items: center; gap: 16px; width: 100%; text-align: left;
-  cursor: pointer; background: transparent; border: none;
-  border-bottom: 1px solid var(--color-divider); padding: 13px 8px;
+.lek-item { border-bottom: 1px solid var(--color-divider); }
+.lek-row { display: flex; align-items: stretch; gap: 8px; }
+.lek-status {
+  display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; text-align: left;
+  cursor: pointer; background: transparent; border: none; padding: 13px 8px;
   font-family: var(--font-body); font-size: 14px; color: var(--color-text);
 }
-.lek-row:hover { background: var(--color-neutral-100); }
+.lek-status:hover { background: var(--color-neutral-100); }
+.lek-toggle {
+  flex: none; display: flex; align-items: center; gap: 8px;
+  cursor: pointer; background: transparent; border: none; padding: 13px 8px;
+  font-family: var(--font-body); font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; font-variant-numeric: tabular-nums;
+  color: var(--color-neutral-600);
+}
+.lek-toggle:hover { background: var(--color-neutral-100); color: var(--color-text); }
+.lek-toggle.is-complete { color: var(--subject-color); }
+.lek-caret { width: 10px; text-align: center; }
+
+/* — pytania jawne na ustną — */
+.lek-questions { padding: 2px 0 16px 44px; }
+.pyt-row {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left;
+  cursor: pointer; background: transparent; border: none; padding: 9px 8px;
+  font-family: var(--font-body); color: var(--color-text);
+}
+.pyt-row:hover { background: var(--color-neutral-100); }
+.pyt-box {
+  flex: none; margin-top: 2px; width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; border-radius: 50%;
+  border: 1px solid var(--color-neutral-300); color: transparent;
+}
+.pyt-box.is-progress {
+  border-color: var(--subject-color); color: var(--subject-color);
+  font-size: 20px; line-height: 0;
+}
+.pyt-box.is-done {
+  border-color: var(--subject-color); background: var(--subject-color); color: #fff;
+}
+.pyt-text { flex: 1; min-width: 0; }
+.pyt-temat { font-size: 13.5px; line-height: 1.5; text-wrap: pretty; }
+.pyt-temat.is-done { color: var(--color-neutral-600); }
+.pyt-nr { color: var(--color-neutral-600); font-variant-numeric: tabular-nums; }
+.pyt-zrodlo {
+  font-size: 12px; line-height: 1.45; color: var(--color-neutral-600);
+  margin-top: 2px; text-wrap: pretty;
+}
 .lek-box {
   flex: none; width: 20px; height: 20px;
   display: flex; align-items: center; justify-content: center;
@@ -279,6 +320,7 @@ a:hover { color: var(--color-neutral-700); }
 }
 :root[data-theme="dark"] .point-box.is-done,
 :root[data-theme="dark"] .lek-box.is-done,
+:root[data-theme="dark"] .pyt-box.is-done,
 :root[data-theme="dark"] .ark-btn.is-primary { color: #17150f; }
 
 /* — narzędzia w nagłówku — */
