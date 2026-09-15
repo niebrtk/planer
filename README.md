@@ -32,27 +32,17 @@ Ewentualnie lokalny serwer, np. `npx http-server .`
 
 - **Powtórki w odstępach** — wymaganie oznaczone jako opanowane wraca do powtórki po 1, 3, 7, 14
   i 30 dniach. „Umiem" przesuwa je na kolejny odstęp, „jeszcze nie" cofa do statusu *w trakcie*.
-- **Na dziś** — chronologicznie: z każdego przedmiotu pierwsze nieopanowane wymaganie
-  w kolejności z podstawy programowej (dział I, II, III… i punkty po kolei), z nazwą działu
-  nad treścią. Wymaganie ze statusem *w trakcie* wraca samo, bo leży wcześniej w kolejności.
-  Kliknięcie treści przenosi do tego wymagania w dziale.
+- **Na dziś** — kontynuacja materiału: z każdego przedmiotu pierwsze nieopanowane wymaganie
+  leżące za ostatnim opanowanym, w kolejności z podstawy programowej, z nazwą działu nad treścią.
+  Nic jeszcze nie opanowane — lista zaczyna od pierwszego wymagania. Gdy za ostatnim opanowanym
+  nic nie zostało, wracają pominięte luki. Kliknięcie treści przenosi do wymagania w dziale.
 - **Tempo** — ile wymagań dziennie trzeba opanować, żeby zdążyć do matury, i jak wypada
   średnia z ostatnich 7 dni.
 - **Cel tygodnia** liczy się sam z wymaganego tempa (tempo × 7), obok seria dni i kamienie milowe.
 
-### Motyw i skróty
+### Motyw
 
-Motyw przełącza przycisk w nagłówku albo <kbd>t</kbd>: auto (ustawienie systemu) → jasny → ciemny.
-
-| Klawisz | Działanie |
-| --- | --- |
-| `1` `2` `3` `4` | biologia, chemia, polski, matematyka |
-| `d` `a` `l` | działy, arkusze, lektury |
-| `j` `k` | następny / poprzedni wiersz |
-| `spacja` | zmiana statusu zaznaczonego wiersza |
-| `o` | rozwiń lub zwiń wszystkie działy |
-| `t` | zmiana motywu |
-| `?` | okno ze skrótami (`Esc` zamyka) |
+Motyw przełącza przycisk w nagłówku: auto (ustawienie systemu) → jasny → ciemny.
 
 ## Ustawienia
 

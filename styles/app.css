@@ -350,29 +350,6 @@ a:hover { color: var(--color-neutral-700); }
 /* podświetlenie wiersza, do którego przeskoczyliśmy z sekcji „Dziś" */
 .is-target { background: var(--color-neutral-100); }
 
-/* — okno skrótów — */
-.help-backdrop {
-  position: fixed; inset: 0; display: grid; place-items: center; padding: 20px;
-  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
-  z-index: 10;
-}
-.help-backdrop[hidden] { display: none; }
-.help-box {
-  width: min(420px, 100%); background: var(--color-surface);
-  border: 1px solid var(--color-divider); padding: 24px;
-}
-.help-title {
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  font-size: 20px; margin-bottom: 16px;
-}
-.help-list { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin: 0 0 20px; font-size: 13px; }
-.help-list dt { white-space: nowrap; }
-.help-list dd { margin: 0; color: var(--color-neutral-700); }
-kbd {
-  font-family: var(--font-body); font-size: 11px; padding: 2px 6px;
-  border: 1px solid var(--color-neutral-300); color: var(--color-neutral-700);
-}
-
 @media (max-width: 560px) {
   .wrap { padding: 40px 20px 72px; }
   .stats { gap: 32px; }

@@ -126,15 +126,18 @@
   }
 
   // — propozycje na dziś ————————————————————————————————————————————
-  // Chronologicznie: dla każdego przedmiotu pierwsze nieopanowane wymaganie
-  // w kolejności z podstawy programowej (dział I, II, III… i punkty po kolei).
-  // Wymagania „w trakcie" wypadają wcześniej, więc wracają same.
+  // Kontynuacja: dla każdego przedmiotu pierwsze nieopanowane wymaganie leżące
+  // ZA ostatnim opanowanym. Nic jeszcze nie opanowane — zaczynamy od początku.
+  // Gdy za ostatnim opanowanym nic nie zostało, wracamy do luk wcześniej.
+  function nextFor(sid) {
+    var pts = allPoints().filter(function (p) { return p.sid === sid; });
+    var last = -1;
+    pts.forEach(function (p, i) { if ((state.marks[p.key] || 0) === 2) last = i; });
+    var unmastered = function (p) { return (state.marks[p.key] || 0) !== 2; };
+    return pts.slice(last + 1).find(unmastered) || pts.find(unmastered);
+  }
   function proposals() {
-    return IDS.map(function (sid) {
-      return allPoints().find(function (p) {
-        return p.sid === sid && (state.marks[p.key] || 0) !== 2;
-      });
-    }).filter(Boolean);
+    return IDS.map(nextFor).filter(Boolean);
   }
 
   // — tempo, seria, cele ——————————————————————————————————————————
@@ -532,57 +535,7 @@
     return row;
   }
 
-  // — skróty klawiszowe ————————————————————————————————————————————
-  function rows() {
-    return [].slice.call(document.querySelectorAll(
-      '.today-jump, .section-head, .point, .lek-row'));
-  }
-  function moveFocus(d) {
-    var list = rows();
-    if (!list.length) return;
-    var i = list.indexOf(document.activeElement);
-    var next = list[Math.max(0, Math.min(list.length - 1, i < 0 ? 0 : i + d))];
-    next.focus();
-    next.scrollIntoView({ block: 'nearest' });
-  }
-  function toggleAll() {
-    var act = state.active;
-    var secs = sectionsFor(act);
-    var anyClosed = secs.some(function (_, si) { return !state.open[act + '|' + si]; });
-    secs.forEach(function (_, si) { state.open[act + '|' + si] = anyClosed; });
-    render();
-  }
-  function showHelp(on) {
-    $('help').hidden = !on;
-    if (on) $('help-close').focus(); else $('help-btn').focus();
-  }
-
-  document.addEventListener('keydown', function (e) {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-
-    if (e.key === 'Escape') { showHelp(false); return; }
-    if (e.key === '?') { e.preventDefault(); showHelp($('help').hidden); return; }
-    if (!$('help').hidden) return;
-
-    var i = '1234'.indexOf(e.key);
-    if (i >= 0 && IDS[i]) { e.preventDefault(); setSubject(IDS[i]); return; }
-
-    switch (e.key.toLowerCase()) {
-      case 'd': setTab('dzialy'); break;
-      case 'a': setTab('arkusze'); break;
-      case 'l': if (state.active === 'pol') setTab('lektury'); break;
-      case 'j': e.preventDefault(); moveFocus(1); break;
-      case 'k': e.preventDefault(); moveFocus(-1); break;
-      case 'o': toggleAll(); break;
-      case 't': cycleTheme(); break;
-    }
-  });
-
   $('theme-btn').addEventListener('click', cycleTheme);
-  $('help-btn').addEventListener('click', function () { showHelp(true); });
-  $('help-close').addEventListener('click', function () { showHelp(false); });
-  $('help').addEventListener('click', function (e) { if (e.target === $('help')) showHelp(false); });
 
   // — start ————————————————————————————————————————————————————————
   backfillReviews();
