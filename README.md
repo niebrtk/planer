@@ -32,9 +32,10 @@ Ewentualnie lokalny serwer, np. `npx http-server .`
 
 - **Powtórki w odstępach** — wymaganie oznaczone jako opanowane wraca do powtórki po 1, 3, 7, 14
   i 30 dniach. „Umiem" przesuwa je na kolejny odstęp, „jeszcze nie" cofa do statusu *w trakcie*.
-- **Na dziś** — trzy propozycje na dzisiaj: najpierw wymagania zaczęte, potem z najsłabiej
-  opanowanego przedmiotu, najwyżej jedno z działu. Lista jest stała w ciągu dnia.
-  Kliknięcie treści przenosi do wymagania w dziale.
+- **Na dziś** — chronologicznie: z każdego przedmiotu pierwsze nieopanowane wymaganie
+  w kolejności z podstawy programowej (dział I, II, III… i punkty po kolei), z nazwą działu
+  nad treścią. Wymaganie ze statusem *w trakcie* wraca samo, bo leży wcześniej w kolejności.
+  Kliknięcie treści przenosi do tego wymagania w dziale.
 - **Tempo** — ile wymagań dziennie trzeba opanować, żeby zdążyć do matury, i jak wypada
   średnia z ostatnich 7 dni.
 - **Cel tygodnia** liczy się sam z wymaganego tempa (tempo × 7), obok seria dni i kamienie milowe.

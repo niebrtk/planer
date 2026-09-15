@@ -379,3 +379,8 @@ kbd {
   .today-row { flex-wrap: wrap; }
   .today-actions { padding: 0 8px 10px; }
 }
+
+.today-sekcja {
+  font-size: 11px; letter-spacing: 0.04em; color: var(--color-neutral-600);
+  padding-bottom: 2px;
+}

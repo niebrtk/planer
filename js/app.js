@@ -8,7 +8,6 @@
   var EXAM_TIME = '09:00:00';          // godzina rozpoczęcia
   var ARKUSZE_GOAL = 15;               // cel arkuszy na przedmiot
   var INTERVALS = [1, 3, 7, 14, 30];   // odstępy powtórek w dniach
-  var PROPOSALS = 3;                   // ile wymagań proponować na dziś
   var REVIEW_SHOWN = 6;                // ile powtórek pokazywać naraz
   var MILESTONES = [25, 50, 100, 150, 200, 250, 300, 350, 400];
   var STORE_KEY = 'matura-planner-v1';
@@ -127,33 +126,15 @@
   }
 
   // — propozycje na dziś ————————————————————————————————————————————
-  function hash(s) {
-    var h = 2166136261;
-    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-    return (h >>> 0) / 4294967295;
-  }
-  function proposals(counts) {
-    var today = dayKey(new Date());
-    var due = {};
-    dueReviews().forEach(function (p) { due[p.key] = true; });
-
-    var scored = allPoints().filter(function (p) {
-      return (state.marks[p.key] || 0) !== 2 && !due[p.key];
-    }).map(function (p) {
-      var v = state.marks[p.key] || 0;
-      // zaczęte wymagania mają pierwszeństwo, potem najsłabiej opanowany przedmiot
-      var score = (v === 1 ? 1000 : 0) + (100 - counts[p.sid].pct) + hash(p.key + today) * 20;
-      return { p: p, score: score };
-    }).sort(function (a, b) { return b.score - a.score; });
-
-    var out = [], seen = {};
-    for (var i = 0; i < scored.length && out.length < PROPOSALS; i++) {
-      var p = scored[i].p, bucket = p.sid + '|' + p.si;
-      if (seen[bucket]) continue;      // najwyżej jedno wymaganie z działu
-      seen[bucket] = true;
-      out.push(p);
-    }
-    return out;
+  // Chronologicznie: dla każdego przedmiotu pierwsze nieopanowane wymaganie
+  // w kolejności z podstawy programowej (dział I, II, III… i punkty po kolei).
+  // Wymagania „w trakcie" wypadają wcześniej, więc wracają same.
+  function proposals() {
+    return IDS.map(function (sid) {
+      return allPoints().find(function (p) {
+        return p.sid === sid && (state.marks[p.key] || 0) !== 2;
+      });
+    }).filter(Boolean);
   }
 
   // — tempo, seria, cele ——————————————————————————————————————————
@@ -380,7 +361,7 @@
       lists.appendChild(block);
     }
 
-    var prop = proposals(counts);
+    var prop = proposals();
     if (prop.length) {
       var pb = el('div', 'today-block');
       pb.appendChild(el('div', 'today-block-label', 'Na dziś'));
@@ -405,8 +386,10 @@
     var tag = el('span', 'today-tag', m.short);
     tag.style.setProperty('--c', subjColor(m));
     jump.appendChild(tag);
-    var text = el('span', 'today-text', p.text);
-    jump.appendChild(text);
+    var body = el('div', 'today-text');
+    body.appendChild(el('div', 'today-sekcja', p.sekcja));
+    body.appendChild(el('div', null, p.text));
+    jump.appendChild(body);
     jump.title = m.name + ' · ' + p.sekcja;
     row.appendChild(jump);
     var acts = el('div', 'today-actions');
