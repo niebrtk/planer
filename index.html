@@ -4,7 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Planer maturalny</title>
-<meta name="description" content="Interaktywny planer maturalny: odliczanie do matury, postęp z podstawy programowej i lista lektur.">
+<meta name="description" content="Interaktywny planer maturalny: odliczanie do matury, postęp z podstawy programowej, powtórki i lista lektur.">
+<meta name="color-scheme" content="light dark">
+<script>
+  // Motyw ustawiany przed pierwszym malowaniem, żeby nie było mignięcia jasnym tłem.
+  try {
+    var t = (JSON.parse(localStorage.getItem('matura-planner-v1') || '{}').theme) || 'auto';
+    document.documentElement.dataset.theme =
+      t === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
+  } catch (e) {}
+</script>
 <link rel="stylesheet" href="styles/ds.css">
 <link rel="stylesheet" href="styles/app.css">
 </head>
@@ -14,7 +23,11 @@
 
     <header class="top">
       <span class="kicker">Planer maturalny</span>
-      <span class="kicker">Matura <span id="exam-year">—</span></span>
+      <div class="top-tools">
+        <span class="kicker">Matura <span id="exam-year">—</span></span>
+        <button type="button" class="tool-btn" id="theme-btn">Motyw: auto</button>
+        <button type="button" class="tool-btn" id="help-btn" aria-haspopup="dialog">Skróty</button>
+      </div>
     </header>
 
     <section class="countdown">
@@ -38,6 +51,20 @@
       </div>
     </section>
 
+    <section class="today">
+      <div class="today-head">
+        <span class="kicker">Dziś</span>
+        <span class="today-streak" id="streak"></span>
+      </div>
+      <div class="today-pace" id="pace"></div>
+      <div class="today-milestone" id="milestone"></div>
+      <div class="today-week">
+        <div class="today-week-label" id="week-label"></div>
+        <div class="bar"><div class="bar-fill is-ink" id="week-bar" style="width:0%"></div></div>
+      </div>
+      <div id="today-lists"></div>
+    </section>
+
     <nav class="subjects" id="subjects" role="tablist" aria-label="Przedmioty"></nav>
 
     <section class="panel">
@@ -52,8 +79,24 @@
       <div id="panel-body"></div>
     </section>
 
-    <p class="footnote">Postęp zapisuje się automatycznie w tej przeglądarce.</p>
+    <p class="footnote">Postęp zapisuje się automatycznie w tej przeglądarce. Skróty klawiszowe: <kbd>?</kbd></p>
   </main>
+</div>
+
+<div class="help-backdrop" id="help" hidden>
+  <div class="help-box" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="help-title" id="help-title">Skróty klawiszowe</div>
+    <dl class="help-list">
+      <dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></dt><dd>biologia, chemia, polski, matematyka</dd>
+      <dt><kbd>d</kbd> <kbd>a</kbd> <kbd>l</kbd></dt><dd>działy, arkusze, lektury</dd>
+      <dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>następny / poprzedni wiersz</dd>
+      <dt><kbd>spacja</kbd></dt><dd>zmiana statusu zaznaczonego wiersza</dd>
+      <dt><kbd>o</kbd></dt><dd>rozwiń lub zwiń wszystkie działy</dd>
+      <dt><kbd>t</kbd></dt><dd>motyw: auto → jasny → ciemny</dd>
+      <dt><kbd>?</kbd></dt><dd>to okno, <kbd>Esc</kbd> zamyka</dd>
+    </dl>
+    <button type="button" class="tool-btn" id="help-close">Zamknij</button>
+  </div>
 </div>
 
 <script src="js/data-dzialy.js"></script>

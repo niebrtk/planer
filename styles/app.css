@@ -246,3 +246,136 @@ a:hover { color: var(--color-neutral-700); }
   font-size: 12px; color: var(--color-neutral-600);
   margin: 56px 0 0; text-align: center;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Motyw ciemny — te same role, ciepła paleta odwrócona.
+   Atrybut data-theme ustawia skrypt w <head> (auto = ustawienie systemu).
+   ══════════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"] {
+  --color-bg: #1b1813;
+  --color-text: #ece6da;
+  --color-divider: #332e26;
+  --color-surface: #211e18;
+
+  --color-accent: #ece6da;
+  --color-accent-100: #262219;
+  --color-accent-200: #2f2a21;
+  --color-accent-300: #453e32;
+  --color-accent-400: #6b6255;
+  --color-accent-500: #ece6da;
+  --color-accent-600: #d6cdbc;
+  --color-accent-700: #b4a894;
+  --color-accent-800: #ece6da;
+  --color-accent-900: #fbf7ef;
+
+  --color-neutral-100: #262219;
+  --color-neutral-200: #2f2a21;
+  --color-neutral-300: #453e32;
+  --color-neutral-400: #6b6255;
+  --color-neutral-600: #9a8f7d;
+  --color-neutral-700: #b4a894;
+  --color-neutral-800: #d6cdbc;
+  --color-neutral-900: #ece6da;
+}
+:root[data-theme="dark"] .point-box.is-done,
+:root[data-theme="dark"] .lek-box.is-done,
+:root[data-theme="dark"] .ark-btn.is-primary { color: #17150f; }
+
+/* — narzędzia w nagłówku — */
+.top-tools { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+.tool-btn {
+  background: transparent; border: none; cursor: pointer; padding: 0;
+  font-family: var(--font-body); font-size: 12px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--color-neutral-600);
+  border-bottom: 1px solid transparent;
+}
+.tool-btn:hover { color: var(--color-text); border-bottom-color: var(--color-divider); }
+
+/* — sekcja „Dziś" — */
+.today { margin-top: 40px; padding-bottom: 8px; border-bottom: 1px solid var(--color-divider); }
+.today-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+}
+.today-streak {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+.today-pace {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 22px; line-height: 1.25; margin-top: 12px;
+}
+.today-pace .pace-note { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--color-neutral-600); }
+.today-milestone { font-size: 12px; color: var(--color-neutral-600); margin-top: 4px; }
+.today-week { margin-top: 16px; }
+.today-week-label {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--color-neutral-600); padding-bottom: 8px;
+}
+.bar-fill.is-ink { background: var(--color-neutral-800); }
+
+.today-block { margin-top: 24px; }
+.today-block-label {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--color-neutral-600); padding-bottom: 4px;
+}
+.today-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.today-jump {
+  display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 0;
+  text-align: left; cursor: pointer; background: transparent; border: none;
+  padding: 11px 8px; font-family: var(--font-body); font-size: 13.5px;
+  line-height: 1.5; color: var(--color-text);
+}
+.today-jump:hover { background: var(--color-neutral-100); }
+.today-tag {
+  flex: none; min-width: 40px; font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--c); margin-top: 3px;
+}
+.today-text { flex: 1; min-width: 0; text-wrap: pretty; }
+.today-actions { flex: none; display: flex; align-items: center; gap: 6px; padding: 8px 0; }
+.today-btn {
+  background: transparent; cursor: pointer; padding: 5px 10px;
+  border: 1px solid var(--color-neutral-300); color: var(--color-neutral-700);
+  font-family: var(--font-body); font-size: 11px; letter-spacing: 0.08em;
+  text-transform: uppercase; line-height: 1;
+}
+.today-btn:hover { border-color: var(--color-text); color: var(--color-text); }
+.today-btn.is-primary { border-color: var(--subject-color); color: var(--subject-color); }
+.today-empty { font-size: 13px; color: var(--color-neutral-600); padding: 10px 0; }
+.today-more { font-size: 12px; color: var(--color-neutral-600); margin-top: 10px; }
+
+/* podświetlenie wiersza, do którego przeskoczyliśmy z sekcji „Dziś" */
+.is-target { background: var(--color-neutral-100); }
+
+/* — okno skrótów — */
+.help-backdrop {
+  position: fixed; inset: 0; display: grid; place-items: center; padding: 20px;
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+  z-index: 10;
+}
+.help-backdrop[hidden] { display: none; }
+.help-box {
+  width: min(420px, 100%); background: var(--color-surface);
+  border: 1px solid var(--color-divider); padding: 24px;
+}
+.help-title {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 20px; margin-bottom: 16px;
+}
+.help-list { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin: 0 0 20px; font-size: 13px; }
+.help-list dt { white-space: nowrap; }
+.help-list dd { margin: 0; color: var(--color-neutral-700); }
+kbd {
+  font-family: var(--font-body); font-size: 11px; padding: 2px 6px;
+  border: 1px solid var(--color-neutral-300); color: var(--color-neutral-700);
+}
+
+@media (max-width: 560px) {
+  .wrap { padding: 40px 20px 72px; }
+  .stats { gap: 32px; }
+  .today-row { flex-wrap: wrap; }
+  .today-actions { padding: 0 8px 10px; }
+}

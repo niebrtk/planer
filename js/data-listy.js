@@ -1,10 +1,15 @@
 // Przedmioty, listy tematyczne (polski, matematyka) oraz lista lektur obowiązkowych.
 
+// color / tint — motyw jasny, colorDark / tintDark — ciemny.
 window.PLANER_PRZEDMIOTY = {
-  bio:  { name: 'Biologia',      level: 'PR', color: '#5c7d55', tint: '#eaf0e6' },
-  chem: { name: 'Chemia',        level: 'PR', color: '#4f7793', tint: '#e7eef3' },
-  pol:  { name: 'Język polski',  level: 'PP', color: '#9c6248', tint: '#f4e9e2' },
-  mat:  { name: 'Matematyka',    level: 'PR', color: '#a5822f', tint: '#f4ecdb' }
+  bio:  { name: 'Biologia',     short: 'Bio',  level: 'PR',
+          color: '#5c7d55', tint: '#eaf0e6', colorDark: '#8dae84', tintDark: '#23291f' },
+  chem: { name: 'Chemia',       short: 'Chem', level: 'PR',
+          color: '#4f7793', tint: '#e7eef3', colorDark: '#82a9c6', tintDark: '#1d262d' },
+  pol:  { name: 'Język polski', short: 'Pol',  level: 'PP',
+          color: '#9c6248', tint: '#f4e9e2', colorDark: '#cf967a', tintDark: '#2c211b' },
+  mat:  { name: 'Matematyka',   short: 'Mat',  level: 'PR',
+          color: '#a5822f', tint: '#f4ecdb', colorDark: '#d3ac5d', tintDark: '#2b2419' }
 };
 
 // Kolejność zakładek.

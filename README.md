@@ -28,6 +28,31 @@ Ewentualnie lokalny serwer, np. `npx http-server .`
 - **Arkusze** — licznik rozwiązanych arkuszy, osobno dla każdego przedmiotu.
 - **Lektury** (tylko polski) — nieprzeczytane → w trakcie czytania → przeczytane → omówione.
 
+### Sekcja „Dziś"
+
+- **Powtórki w odstępach** — wymaganie oznaczone jako opanowane wraca do powtórki po 1, 3, 7, 14
+  i 30 dniach. „Umiem" przesuwa je na kolejny odstęp, „jeszcze nie" cofa do statusu *w trakcie*.
+- **Na dziś** — trzy propozycje na dzisiaj: najpierw wymagania zaczęte, potem z najsłabiej
+  opanowanego przedmiotu, najwyżej jedno z działu. Lista jest stała w ciągu dnia.
+  Kliknięcie treści przenosi do wymagania w dziale.
+- **Tempo** — ile wymagań dziennie trzeba opanować, żeby zdążyć do matury, i jak wypada
+  średnia z ostatnich 7 dni.
+- **Cel tygodnia** liczy się sam z wymaganego tempa (tempo × 7), obok seria dni i kamienie milowe.
+
+### Motyw i skróty
+
+Motyw przełącza przycisk w nagłówku albo <kbd>t</kbd>: auto (ustawienie systemu) → jasny → ciemny.
+
+| Klawisz | Działanie |
+| --- | --- |
+| `1` `2` `3` `4` | biologia, chemia, polski, matematyka |
+| `d` `a` `l` | działy, arkusze, lektury |
+| `j` `k` | następny / poprzedni wiersz |
+| `spacja` | zmiana statusu zaznaczonego wiersza |
+| `o` | rozwiń lub zwiń wszystkie działy |
+| `t` | zmiana motywu |
+| `?` | okno ze skrótami (`Esc` zamyka) |
+
 ## Ustawienia
 
 Na górze `js/app.js`:
@@ -41,7 +66,8 @@ var ARKUSZE_GOAL = 15;          // cel arkuszy na przedmiot
 ## Zapis postępu
 
 Wszystko siedzi w `localStorage` przeglądarki pod kluczem `matura-planner-v1`
-(zaznaczenia, arkusze, lektury, ostatnio otwarta zakładka). Dane nie wychodzą nigdzie poza
+(zaznaczenia, arkusze, lektury, terminy powtórek, dzienny licznik opanowanych wymagań,
+motyw i ostatnio otwarta zakładka). Dane nie wychodzą nigdzie poza
 Twój komputer — ale też nie przenoszą się między przeglądarkami ani urządzeniami,
 a wyczyszczenie danych witryny je kasuje.
 
