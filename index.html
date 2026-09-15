@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planer maturalny</title>
+<meta name="description" content="Interaktywny planer maturalny: odliczanie do matury, postęp z podstawy programowej i lista lektur.">
+<link rel="stylesheet" href="styles/ds.css">
+<link rel="stylesheet" href="styles/app.css">
+</head>
+<body>
+<div class="page">
+  <main class="wrap">
+
+    <header class="top">
+      <span class="kicker">Planer maturalny</span>
+      <span class="kicker">Matura <span id="exam-year">—</span></span>
+    </header>
+
+    <section class="countdown">
+      <div class="countdown-days" id="days">—</div>
+      <div class="countdown-label">dni do matury</div>
+      <div class="countdown-clock"><span id="hours">--</span> : <span id="minutes">--</span> : <span id="seconds">--</span></div>
+    </section>
+
+    <section class="stats">
+      <div class="stat">
+        <div class="stat-value" id="overall-pct">0%</div>
+        <div class="stat-label">postęp ogółem</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="done-total">0</div>
+        <div class="stat-label">opanowane punkty</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="arkusze-total">0 / 0</div>
+        <div class="stat-label">arkusze</div>
+      </div>
+    </section>
+
+    <nav class="subjects" id="subjects" role="tablist" aria-label="Przedmioty"></nav>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title" id="panel-title">—</h2>
+        <span class="panel-meta" id="panel-meta"></span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="panel-bar" style="width:0%"></div></div>
+
+      <div class="subtabs" id="subtabs" role="tablist" aria-label="Widok przedmiotu"></div>
+
+      <div id="panel-body"></div>
+    </section>
+
+    <p class="footnote">Postęp zapisuje się automatycznie w tej przeglądarce.</p>
+  </main>
+</div>
+
+<script src="js/data-dzialy.js"></script>
+<script src="js/data-listy.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
