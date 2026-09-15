@@ -44,6 +44,20 @@ Ewentualnie lokalny serwer, np. `npx http-server .`
   średnia z ostatnich 7 dni.
 - **Cel tygodnia** liczy się sam z wymaganego tempa (tempo × 7), obok seria dni i kamienie milowe.
 
+### Ustna
+
+Zakładka **Ustna** przy języku polskim: losujesz pytanie (losowanie omija te już opracowane),
+planer odmierza 15 minut przygotowania i automatycznie przechodzi w 10 minut wypowiedzi.
+Po wszystkim oceniasz się sam — *poszło* ustawia pytanie na opracowane, *do poprawki* na w trakcie.
+Pod spodem plan wypowiedzi w czterech polach (teza, argumenty z lektury, kontekst, wniosek),
+zapisywany na bieżąco; pytanie z notatką dostaje znacznik w zakładce Lektury.
+
+### Historia
+
+Na dole strony wykres skumulowanego postępu z przerywaną linią wymaganego tempa
+(najedź, żeby zobaczyć konkretny dzień; „pokaż liczby" rozwija tabelę) oraz kalendarz
+nauki z ostatnich 18 tygodni — jeden odcień, więcej wymagań = ciemniej (w ciemnym motywie: jaśniej).
+
 ### Motyw
 
 Motyw przełącza przycisk w nagłówku: auto (ustawienie systemu) → jasny → ciemny.
@@ -61,8 +75,8 @@ var ARKUSZE_GOAL = 15;          // cel arkuszy na przedmiot
 ## Zapis postępu
 
 Wszystko siedzi w `localStorage` przeglądarki pod kluczem `matura-planner-v1`
-(zaznaczenia, arkusze, lektury, pytania ustne, terminy powtórek, dzienny licznik opanowanych
-wymagań, motyw i ostatnio otwarta zakładka). Dane nie wychodzą nigdzie poza
+(zaznaczenia, arkusze, lektury, pytania ustne, notatki do wypowiedzi, terminy powtórek,
+dzienny licznik opanowanych wymagań, motyw i ostatnio otwarta zakładka). Dane nie wychodzą nigdzie poza
 Twój komputer — ale też nie przenoszą się między przeglądarkami ani urządzeniami,
 a wyczyszczenie danych witryny je kasuje.
 

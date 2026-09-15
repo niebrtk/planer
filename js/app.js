@@ -10,6 +10,14 @@
   var INTERVALS = [1, 3, 7, 14, 30];   // odstępy powtórek w dniach
   var REVIEW_SHOWN = 6;                // ile powtórek pokazywać naraz
   var MILESTONES = [25, 50, 100, 150, 200, 250, 300, 350, 400];
+  var PRZYGOTOWANIE_MIN = 15;          // czas na przygotowanie na ustnej
+  var WYPOWIEDZ_MIN = 10;              // czas wypowiedzi
+  var NOTATKA_POLA = [
+    { id: 'teza', label: 'Teza' },
+    { id: 'argumenty', label: 'Argumenty z lektury' },
+    { id: 'kontekst', label: 'Kontekst' },
+    { id: 'wniosek', label: 'Wniosek' }
+  ];
   var STORE_KEY = 'matura-planner-v1';
   var DAY = 86400000;
 
@@ -34,6 +42,8 @@
     arkusze: saved.arkusze || {},  // sid -> liczba rozwiązanych arkuszy
     lektury: saved.lektury || {},  // 'grp|tytuł' -> 0..3
     pytania: saved.pytania || {},  // numer pytania ustnego -> 0 do opracowania / 1 w trakcie / 2 opracowane
+    notatki: saved.notatki || {},  // numer pytania -> { teza, argumenty, kontekst, wniosek }
+    ustnaNr: saved.ustnaNr || null,// wylosowane pytanie w trybie ustnej
     rep: saved.rep || {},          // 'sid|si|gi|pi' -> { l: poziom powtórki, d: termin (ms) }
     log: saved.log || {},          // 'RRRR-MM-DD' -> ile wymagań opanowano tego dnia
     theme: THEMES.indexOf(saved.theme) >= 0 ? saved.theme : 'auto',
@@ -46,6 +56,7 @@
       localStorage.setItem(STORE_KEY, JSON.stringify({
         active: state.active, tab: state.tab, marks: state.marks,
         arkusze: state.arkusze, lektury: state.lektury, pytania: state.pytania,
+        notatki: state.notatki, ustnaNr: state.ustnaNr,
         rep: state.rep, log: state.log, theme: state.theme
       }));
     } catch (e) { /* tryb prywatny / brak miejsca — planer działa dalej, bez zapisu */ }
@@ -69,6 +80,20 @@
     });
   }
 
+  function wszystkiePytania() {
+    return Object.keys(PYTANIA).reduce(function (a, t) {
+      return a.concat(PYTANIA[t].map(function (q) {
+        return { nr: q.nr, temat: q.temat, zrodlo: q.zrodlo, lektura: t };
+      }));
+    }, []).sort(function (a, b) { return a.nr - b.nr; });
+  }
+  function pytanieNr(nr) {
+    return wszystkiePytania().find(function (q) { return q.nr === nr; }) || null;
+  }
+  function maNotatke(nr) {
+    var n = state.notatki[nr];
+    return !!n && NOTATKA_POLA.some(function (f) { return (n[f.id] || '').trim(); });
+  }
   function markKey(sid, si, gi, pi) { return sid + '|' + si + '|' + gi + '|' + pi; }
   function lekKey(group, title) { return group.slice(0, 4) + '|' + title; }
 
@@ -194,6 +219,30 @@
     state.pytania[nr] = ((state.pytania[nr] || 0) + 1) % 3;
     save(); render();
   }
+  var timer = { faza: 'idle', koniec: 0 };   // faza: idle | przygotowanie | wypowiedz | koniec
+
+  function losujPytanie() {
+    var wszystkie = wszystkiePytania();
+    var pula = wszystkie.filter(function (q) {
+      return (state.pytania[q.nr] || 0) !== 2 && q.nr !== state.ustnaNr;
+    });
+    if (!pula.length) pula = wszystkie.filter(function (q) { return q.nr !== state.ustnaNr; });
+    if (!pula.length) pula = wszystkie;
+    state.ustnaNr = pula[Math.floor(Math.random() * pula.length)].nr;
+    timer.faza = 'idle';
+    save(); render();
+  }
+  function startFazy(faza) {
+    timer.faza = faza;
+    timer.koniec = Date.now() + (faza === 'przygotowanie' ? PRZYGOTOWANIE_MIN : WYPOWIEDZ_MIN) * 60000;
+    render();
+  }
+  function stopTimera() { timer.faza = 'idle'; render(); }
+  function zapiszNotatke(nr, pole, wartosc) {
+    var n = state.notatki[nr] || (state.notatki[nr] = {});
+    n[pole] = wartosc;
+    save();   // bez render(), żeby nie przerywać pisania
+  }
   function toggleLektura(title) {
     state.openLek[title] = !state.openLek[title];
     render();
@@ -269,6 +318,7 @@
     $('hours').textContent = pad(Math.floor(diff / 3600000) % 24);
     $('minutes').textContent = pad(Math.floor(diff / 60000) % 60);
     $('seconds').textContent = pad(Math.floor(diff / 1000) % 60);
+    tickUstna();
   }
 
   // — render ————————————————————————————————————————————————————————
@@ -298,6 +348,7 @@
     $('arkusze-total').textContent = totalArkusze + ' / ' + (ARKUSZE_GOAL * IDS.length);
 
     renderToday(counts, sumDone, sumTotal);
+    renderHistoria(sumDone, sumTotal);
     renderSubjectTabs(counts);
 
     $('panel-title').textContent = meta.name;
@@ -306,7 +357,7 @@
     $('panel-bar').style.width = counts[act].pct + '%';
 
     var tabs = [{ id: 'dzialy', label: 'Działy' }, { id: 'arkusze', label: 'Arkusze' }];
-    if (act === 'pol') tabs.push({ id: 'lektury', label: 'Lektury' });
+    if (act === 'pol') { tabs.push({ id: 'lektury', label: 'Lektury' }); tabs.push({ id: 'ustna', label: 'Ustna' }); }
     if (!tabs.some(function (t) { return t.id === state.tab; })) state.tab = 'dzialy';
     renderSubtabs(tabs);
 
@@ -314,6 +365,7 @@
     clear(body);
     if (state.tab === 'dzialy') body.appendChild(renderSections(act));
     else if (state.tab === 'lektury') body.appendChild(renderLektury());
+    else if (state.tab === 'ustna') body.appendChild(renderUstna());
     else body.appendChild(renderArkusze(meta));
   }
 
@@ -569,12 +621,326 @@
         head.appendChild(document.createTextNode(' ' + q.temat));
         txt.appendChild(head);
         txt.appendChild(el('div', 'pyt-zrodlo', q.zrodlo));
+        if (maNotatke(q.nr)) head.appendChild(el('span', 'pyt-nota', 'notatka'));
         b.appendChild(txt);
         box.appendChild(b);
       });
       item.appendChild(box);
     }
     return item;
+  }
+
+  // — historia: wykres postępu i heatmapa dni ——————————————————————
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  function svg(tag, attrs) {
+    var n = document.createElementNS(SVG_NS, tag);
+    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    return n;
+  }
+  function dataZKlucza(k) {
+    var cz = k.split('-');
+    return new Date(+cz[0], +cz[1] - 1, +cz[2]);
+  }
+  function opisDnia(k) {
+    return dataZKlucza(k).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  // Dzień po dniu: ile opanowano i ile było opanowanych łącznie.
+  function historiaDni(sumDone) {
+    var klucze = Object.keys(state.log).sort();
+    if (!klucze.length) return null;
+    var suma = klucze.reduce(function (a, k) { return a + state.log[k]; }, 0);
+    var cum = sumDone - suma;                      // stan sprzed pierwszego zapisanego dnia
+    var start = dataZKlucza(klucze[0]);
+    var minStart = new Date(Date.now() - 13 * DAY);
+    minStart.setHours(0, 0, 0, 0);
+    if (start > minStart) start = minStart;
+
+    var dni = [], d = new Date(start);
+    d.setHours(0, 0, 0, 0);
+    var dzis = new Date(); dzis.setHours(0, 0, 0, 0);
+    while (d <= dzis) {
+      var k = dayKey(d);
+      cum += state.log[k] || 0;
+      dni.push({ k: k, ile: state.log[k] || 0, cum: cum });
+      d = new Date(d.getTime() + DAY);
+    }
+    return dni;
+  }
+
+  function renderHistoria(sumDone, sumTotal) {
+    var host = $('historia');
+    clear(host);
+    var dni = historiaDni(sumDone);
+
+    var head = el('div', 'today-head');
+    head.appendChild(el('span', 'kicker', 'Historia'));
+    host.appendChild(head);
+
+    if (!dni) {
+      host.appendChild(el('div', 'today-empty',
+        'Wykres i kalendarz pojawią się, gdy odhaczysz pierwsze wymagania.'));
+      return;
+    }
+    host.appendChild(wykresPostepu(dni, sumTotal));
+    host.appendChild(heatmapaDni());
+  }
+
+  // Wykres skumulowanego postępu: jedna seria (ink) + przerywana linia wymaganego tempa.
+  function wykresPostepu(dni, sumTotal) {
+    var blok = el('div', 'hist-blok');
+    blok.appendChild(el('div', 'today-block-label', 'Opanowane wymagania w czasie'));
+    var readout = el('div', 'hist-readout');
+    blok.appendChild(readout);
+
+    var W = 720, H = 200, L = 6, R = 92, T = 14, B = 26;
+    var start = dataZKlucza(dni[0].k);
+    var doEgzaminu = Math.max(1, Math.round((new Date(EXAM_DATE + 'T' + EXAM_TIME) - start) / DAY));
+    var cel = function (i) {
+      return dni[0].cum + (sumTotal - dni[0].cum) * Math.min(1, i / doEgzaminu);
+    };
+    var maxY = Math.max(1, dni[dni.length - 1].cum, cel(dni.length - 1)) * 1.12;
+    var x = function (i) { return L + (W - L - R) * (dni.length === 1 ? 0 : i / (dni.length - 1)); };
+    var y = function (v) { return T + (H - T - B) * (1 - v / maxY); };
+
+    var s = svg('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'hist-svg', role: 'img',
+      'aria-label': 'Wykres: ' + dni[dni.length - 1].cum + ' opanowanych wymagań na ' +
+        opisDnia(dni[dni.length - 1].k) + ', przy wymaganym tempie ' + Math.round(cel(dni.length - 1)) + '.' });
+
+    s.appendChild(svg('line', { x1: L, y1: y(0), x2: W - R, y2: y(0), class: 'hist-os' }));
+
+    var celD = dni.map(function (_, i) { return (i ? 'L' : 'M') + x(i) + ' ' + y(cel(i)); }).join(' ');
+    s.appendChild(svg('path', { d: celD, class: 'hist-cel' }));
+
+    var linia = dni.map(function (p, i) { return (i ? 'L' : 'M') + x(i) + ' ' + y(p.cum); }).join(' ');
+    s.appendChild(svg('path', { d: linia, class: 'hist-linia' }));
+
+    // etykiety bezpośrednie zamiast legendy — jedna seria i jedna linia odniesienia
+    var ostatni = dni[dni.length - 1];
+    s.appendChild(svg('circle', { cx: x(dni.length - 1), cy: y(ostatni.cum), r: 4, class: 'hist-punkt' }));
+    var lab = svg('text', { x: x(dni.length - 1) + 10, y: y(ostatni.cum) + 4, class: 'hist-label' });
+    lab.textContent = ostatni.cum + ' opanowane';
+    s.appendChild(lab);
+    // gdy linia tempa biegnie blisko postępu, etykiety rozjeżdżamy, żeby się nie nachodziły
+    var yCel = y(cel(dni.length - 1)), yCum = y(ostatni.cum);
+    if (Math.abs(yCel - yCum) < 15) yCel = yCum + (yCel >= yCum ? 15 : -15);
+    var labCel = svg('text', { x: x(dni.length - 1) + 10, y: yCel + 4, class: 'hist-label is-muted' });
+    labCel.textContent = 'wymagane tempo';
+    s.appendChild(labCel);
+
+    [0, dni.length - 1].forEach(function (i, n) {
+      var t = svg('text', { x: x(i), y: H - 6, class: 'hist-tick' + (n ? ' is-end' : '') });
+      t.textContent = dataZKlucza(dni[i].k).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+      s.appendChild(t);
+    });
+
+    // warstwa hover: pionowa linia trafia w najbliższy dzień
+    var kres = svg('line', { x1: 0, y1: T, x2: 0, y2: y(0), class: 'hist-kres', opacity: 0 });
+    s.appendChild(kres);
+    var lupa = svg('circle', { r: 4, class: 'hist-lupa', opacity: 0 });
+    s.appendChild(lupa);
+    var hit = svg('rect', { x: L, y: T, width: W - L - R, height: H - T - B, fill: 'transparent' });
+    s.appendChild(hit);
+
+    var pokazDzien = function (p) {
+      clear(readout);
+      readout.appendChild(el('strong', null, p.cum + ' opanowanych'));
+      readout.appendChild(document.createTextNode(' · ' + opisDnia(p.k) +
+        (p.ile ? ' · tego dnia +' + p.ile : ' · tego dnia nic')));
+    };
+    pokazDzien(ostatni);
+    hit.addEventListener('pointermove', function (e) {
+      var r = s.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width * W;
+      var i = Math.max(0, Math.min(dni.length - 1,
+        Math.round((px - L) / Math.max(1, (W - L - R)) * (dni.length - 1))));
+      kres.setAttribute('x1', x(i)); kres.setAttribute('x2', x(i)); kres.setAttribute('opacity', 1);
+      lupa.setAttribute('cx', x(i)); lupa.setAttribute('cy', y(dni[i].cum)); lupa.setAttribute('opacity', 1);
+      pokazDzien(dni[i]);
+    });
+    hit.addEventListener('pointerleave', function () {
+      kres.setAttribute('opacity', 0); lupa.setAttribute('opacity', 0); pokazDzien(ostatni);
+    });
+    blok.appendChild(s);
+
+    // te same liczby bez najeżdżania myszą
+    var det = el('details', 'hist-liczby');
+    det.appendChild(el('summary', null, 'Pokaż liczby'));
+    var tab = el('table', 'hist-tabela');
+    var thead = el('tr');
+    ['Dzień', 'Tego dnia', 'Łącznie'].forEach(function (t) { thead.appendChild(el('th', null, t)); });
+    tab.appendChild(thead);
+    dni.slice().reverse().forEach(function (p) {
+      var tr = el('tr');
+      tr.appendChild(el('td', null, opisDnia(p.k)));
+      tr.appendChild(el('td', null, p.ile ? '+' + p.ile : '—'));
+      tr.appendChild(el('td', null, String(p.cum)));
+      tab.appendChild(tr);
+    });
+    det.appendChild(tab);
+    blok.appendChild(det);
+    return blok;
+  }
+
+  // Kalendarz aktywności: jeden odcień, więcej = ciemniej.
+  function heatmapaDni() {
+    var TYG = 18, CELA = 13, ODSTEP = 3;
+    var blok = el('div', 'hist-blok');
+    blok.appendChild(el('div', 'today-block-label', 'Kalendarz nauki — ostatnie ' + TYG + ' tygodni'));
+
+    var dzis = new Date(); dzis.setHours(0, 0, 0, 0);
+    var koniecTyg = new Date(dzis.getTime() + (6 - (dzis.getDay() + 6) % 7) * DAY);   // niedziela bieżącego tygodnia
+    var start = new Date(koniecTyg.getTime() - (TYG * 7 - 1) * DAY);
+
+    var W = TYG * (CELA + ODSTEP), H = 7 * (CELA + ODSTEP) + 16;
+    var s = svg('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'hm-svg', role: 'img',
+      'aria-label': 'Kalendarz aktywności z ostatnich ' + TYG + ' tygodni.' });
+
+    var miesiace = {};
+    for (var t = 0; t < TYG; t++) {
+      for (var d = 0; d < 7; d++) {
+        var data = new Date(start.getTime() + (t * 7 + d) * DAY);
+        if (data > dzis) continue;
+        var k = dayKey(data), ile = state.log[k] || 0;
+        var poziom = ile <= 0 ? 0 : ile <= 2 ? 1 : ile <= 5 ? 2 : 3;
+        var cela = svg('rect', {
+          x: t * (CELA + ODSTEP), y: 16 + d * (CELA + ODSTEP),
+          width: CELA, height: CELA, class: 'hm-cela poziom-' + poziom, tabindex: '0'
+        });
+        var tip = svg('title');
+        tip.textContent = opisDnia(k) + ' · ' + (ile > 0 ? ile + ' ' +
+          plural(ile, 'wymaganie', 'wymagania', 'wymagań') : 'nic');
+        cela.appendChild(tip);
+        s.appendChild(cela);
+        var mkey = data.getFullYear() + '-' + data.getMonth();
+        if (d === 0 && !miesiace[mkey]) { miesiace[mkey] = true;
+          var m = svg('text', { x: t * (CELA + ODSTEP), y: 9, class: 'hm-miesiac' });
+          m.textContent = data.toLocaleDateString('pl-PL', { month: 'short' });
+          s.appendChild(m);
+        }
+      }
+    }
+    blok.appendChild(s);
+
+    var leg = el('div', 'hm-legenda');
+    leg.appendChild(el('span', null, 'mniej'));
+    [0, 1, 2, 3].forEach(function (p) { leg.appendChild(el('span', 'hm-probka poziom-' + p)); });
+    leg.appendChild(el('span', null, 'więcej'));
+    blok.appendChild(leg);
+    return blok;
+  }
+
+  function renderUstna() {
+    var wrap = el('div', 'ustna');
+    var wszystkie = wszystkiePytania();
+    var opracowane = wszystkie.filter(function (q) { return (state.pytania[q.nr] || 0) === 2; }).length;
+    var zNotatka = wszystkie.filter(function (q) { return maNotatke(q.nr); }).length;
+
+    wrap.appendChild(el('div', 'lektury-hint', opracowane + '/' + wszystkie.length +
+      ' pytań opracowanych · ' + zNotatka + ' z notatką · losowanie omija te już opracowane'));
+
+    var akcje = el('div', 'ustna-akcje');
+    akcje.appendChild(btn('today-btn is-primary', state.ustnaNr ? 'Wylosuj inne' : 'Wylosuj pytanie', losujPytanie));
+    wrap.appendChild(akcje);
+
+    var q = pytanieNr(state.ustnaNr);
+    if (!q) {
+      wrap.appendChild(el('div', 'today-empty',
+        'Wylosuj pytanie, a planer odmierzy ' + PRZYGOTOWANIE_MIN + ' minut na przygotowanie i ' +
+        WYPOWIEDZ_MIN + ' minut wypowiedzi — jak na prawdziwej ustnej.'));
+      return wrap;
+    }
+
+    var karta = el('div', 'ustna-karta');
+    karta.appendChild(el('div', 'ustna-lektura', q.lektura));
+    var temat = el('div', 'ustna-temat');
+    temat.appendChild(el('span', 'pyt-nr', q.nr + '.'));
+    temat.appendChild(document.createTextNode(' ' + q.temat));
+    karta.appendChild(temat);
+    karta.appendChild(el('div', 'ustna-zrodlo', q.zrodlo));
+    wrap.appendChild(karta);
+
+    // — timer —
+    var box = el('div', 'ustna-timer');
+    var faza = el('div', 'ustna-faza');
+    faza.id = 'ustna-faza';
+    faza.textContent = fazaLabel();
+    box.appendChild(faza);
+    var zegar = el('div', 'ustna-zegar');
+    zegar.id = 'ustna-zegar';
+    zegar.textContent = zegarTekst();
+    box.appendChild(zegar);
+
+    var sterowanie = el('div', 'ustna-sterowanie');
+    sterowanie.appendChild(btn('today-btn' + (timer.faza === 'przygotowanie' ? ' is-primary' : ''),
+      'Przygotowanie ' + PRZYGOTOWANIE_MIN + ' min', function () { startFazy('przygotowanie'); }));
+    sterowanie.appendChild(btn('today-btn' + (timer.faza === 'wypowiedz' ? ' is-primary' : ''),
+      'Wypowiedź ' + WYPOWIEDZ_MIN + ' min', function () { startFazy('wypowiedz'); }));
+    if (timer.faza !== 'idle') sterowanie.appendChild(btn('today-btn', 'Zatrzymaj', stopTimera));
+    box.appendChild(sterowanie);
+    wrap.appendChild(box);
+
+    // — samoocena —
+    var ocena = el('div', 'ustna-ocena');
+    ocena.appendChild(el('span', 'today-block-label', 'Jak poszło?'));
+    var przyciski = el('div', 'today-actions');
+    przyciski.appendChild(btn('today-btn is-primary', 'poszło', function () {
+      state.pytania[q.nr] = 2; timer.faza = 'idle'; save(); render();
+    }));
+    przyciski.appendChild(btn('today-btn', 'do poprawki', function () {
+      state.pytania[q.nr] = 1; timer.faza = 'idle'; save(); render();
+    }));
+    ocena.appendChild(przyciski);
+    wrap.appendChild(ocena);
+
+    // — notatka —
+    var notatka = el('div', 'ustna-notatka');
+    notatka.appendChild(el('div', 'today-block-label', 'Plan wypowiedzi'));
+    NOTATKA_POLA.forEach(function (f) {
+      var pole = el('div', 'nota-pole');
+      var lab = el('label', 'nota-label', f.label);
+      lab.htmlFor = 'nota-' + f.id;
+      pole.appendChild(lab);
+      var ta = el('textarea', 'nota-input');
+      ta.id = 'nota-' + f.id;
+      ta.rows = f.id === 'argumenty' ? 4 : 2;
+      ta.value = (state.notatki[q.nr] && state.notatki[q.nr][f.id]) || '';
+      ta.addEventListener('input', function () { zapiszNotatke(q.nr, f.id, ta.value); });
+      pole.appendChild(ta);
+      notatka.appendChild(pole);
+    });
+    wrap.appendChild(notatka);
+    return wrap;
+  }
+
+  function fazaLabel() {
+    return timer.faza === 'przygotowanie' ? 'Przygotowanie'
+      : timer.faza === 'wypowiedz' ? 'Wypowiedź'
+      : timer.faza === 'koniec' ? 'Czas minął'
+      : 'Gotowy do startu';
+  }
+  function zegarTekst() {
+    if (timer.faza === 'idle') return pad(PRZYGOTOWANIE_MIN) + ':00';
+    var left = Math.max(0, timer.koniec - Date.now());
+    return pad(Math.floor(left / 60000)) + ':' + pad(Math.floor(left / 1000) % 60);
+  }
+  function tickUstna() {
+    var zegar = document.getElementById('ustna-zegar');
+    if (!zegar) return;
+    if (timer.faza === 'przygotowanie' || timer.faza === 'wypowiedz') {
+      if (Date.now() >= timer.koniec) {
+        // po przygotowaniu automatycznie startuje wypowiedź, jak na egzaminie
+        if (timer.faza === 'przygotowanie') {
+          timer.faza = 'wypowiedz';
+          timer.koniec = Date.now() + WYPOWIEDZ_MIN * 60000;
+        } else {
+          timer.faza = 'koniec';
+        }
+      }
+    }
+    zegar.textContent = zegarTekst();
+    var faza = document.getElementById('ustna-faza');
+    if (faza) faza.textContent = fazaLabel();
   }
 
   function renderArkusze(meta) {

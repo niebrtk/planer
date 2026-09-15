@@ -403,3 +403,95 @@ a:hover { color: var(--color-neutral-700); }
   font-size: 11px; letter-spacing: 0.04em; color: var(--color-neutral-600);
   padding-bottom: 2px;
 }
+
+/* — tryb ustnej — */
+.ustna { margin-top: 20px; }
+.ustna-akcje { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+.ustna-karta {
+  margin-top: 24px; padding: 20px 0 22px;
+  border-top: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-divider);
+}
+.ustna-lektura {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--subject-color); padding-bottom: 10px;
+}
+.ustna-temat {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 24px; line-height: 1.25; text-wrap: pretty;
+}
+.ustna-zrodlo {
+  font-size: 13px; line-height: 1.5; color: var(--color-neutral-600);
+  margin-top: 8px; text-wrap: pretty;
+}
+.ustna-timer { margin-top: 28px; text-align: center; }
+.ustna-faza {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+.ustna-zegar {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 64px; line-height: 1.05; font-variant-numeric: tabular-nums;
+  margin-top: 6px;
+}
+.ustna-sterowanie { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+.ustna-ocena {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-top: 28px;
+  padding-top: 20px; border-top: 1px solid var(--color-divider);
+}
+.ustna-notatka { margin-top: 28px; }
+.nota-pole { margin-top: 14px; }
+.nota-label {
+  display: block; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-neutral-600); padding-bottom: 6px;
+}
+.nota-input {
+  width: 100%; padding: 10px 12px; font: inherit; font-size: 13.5px; line-height: 1.5;
+  color: var(--color-text); background: var(--color-surface);
+  border: 1px solid var(--color-divider); border-radius: 0; resize: vertical;
+}
+.nota-input:focus-visible { border-color: var(--subject-color); outline: none; }
+.pyt-nota {
+  margin-left: 10px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--subject-color);
+}
+
+/* — historia: wykres postępu i kalendarz nauki — */
+.historia { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--color-divider); }
+.hist-blok { margin-top: 24px; }
+.hist-readout { font-size: 13px; color: var(--color-neutral-600); padding: 4px 0 8px; }
+.hist-readout strong { font-weight: 600; color: var(--color-text); }
+.hist-svg { width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-y; }
+.hist-os { stroke: var(--color-divider); stroke-width: 1; }
+.hist-linia { fill: none; stroke: var(--color-text); stroke-width: 2; stroke-linejoin: round; }
+.hist-cel { fill: none; stroke: var(--color-neutral-400); stroke-width: 1.5; stroke-dasharray: 5 5; }
+.hist-punkt { fill: var(--color-text); }
+.hist-lupa { fill: var(--color-text); }
+.hist-kres { stroke: var(--color-neutral-400); stroke-width: 1; }
+.hist-label { font-family: var(--font-body); font-size: 12px; fill: var(--color-text); }
+.hist-label.is-muted { fill: var(--color-neutral-600); }
+.hist-tick { font-family: var(--font-body); font-size: 11px; fill: var(--color-neutral-600); }
+.hist-tick.is-end { text-anchor: end; }
+.hist-liczby { margin-top: 12px; font-size: 12px; color: var(--color-neutral-600); }
+.hist-liczby summary { cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; }
+.hist-tabela { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+.hist-tabela th {
+  text-align: left; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 10px; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--color-divider);
+}
+.hist-tabela td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--color-divider); font-variant-numeric: tabular-nums; }
+
+.hm-svg { width: 100%; max-width: 420px; height: auto; display: block; margin-top: 6px; }
+.hm-cela { rx: 1; }
+.hm-cela:hover, .hm-cela:focus-visible { stroke: var(--color-text); stroke-width: 1.5; outline: none; }
+.hm-cela.poziom-0, .hm-probka.poziom-0 { fill: var(--color-neutral-200); background: var(--color-neutral-200); }
+.hm-cela.poziom-1, .hm-probka.poziom-1 { fill: var(--color-neutral-400); background: var(--color-neutral-400); }
+.hm-cela.poziom-2, .hm-probka.poziom-2 { fill: var(--color-neutral-700); background: var(--color-neutral-700); }
+.hm-cela.poziom-3, .hm-probka.poziom-3 { fill: var(--color-text); background: var(--color-text); }
+.hm-miesiac { font-family: var(--font-body); font-size: 9px; fill: var(--color-neutral-600); }
+.hm-legenda {
+  display: flex; align-items: center; gap: 5px; margin-top: 10px;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-neutral-600);
+}
+.hm-probka { width: 11px; height: 11px; display: inline-block; }
